@@ -32,7 +32,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     '192.168.3.27',
-    'palermo.pythonanywhere.com'
+    'palermo.pythonanywhere.com',
+    '.vercel.app'
 ]
 
 # Application definition
