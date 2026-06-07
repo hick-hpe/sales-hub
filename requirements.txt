@@ -2,3 +2,5 @@ django
 django-pwa
 whitenoise
 reportlab
+psycopg2-binary
+python-dotenv
