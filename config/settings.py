@@ -91,10 +91,10 @@ if os.getenv('DB_ENGINE'):
     DATABASES = {
         'default': {
             'ENGINE': os.getenv('DB_ENGINE'),
-            'NAME': os.getenv('DB_NAME'),
-            'USER': os.getenv('DB_USER'), # DB_USER, porque ele obtém o USER do linux
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST'),
+            'NAME': os.getenv('PGDATABASE'),
+            'USER': os.getenv('PGUSER'), # PGUSER, porque ele obtém o USER do linux
+            'PASSWORD': os.getenv('PGPASSWORD'),
+            'HOST': os.getenv('PGHOST'),
             'PORT': os.getenv('DB_PORT'),
             # 'OPTIONS': {
             # 'sslmode': 'require',
