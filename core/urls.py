@@ -38,6 +38,12 @@ urlpatterns = [
     path('relatorios/', views.relatorios_view, name='relatorios'),
     path('gerar-relatorio/', views.gerar_relatorio_view, name='gerar_relatorio'),
 
+    # fornecedores
+    path('fornecedores/criar/', views.criar_fornecedor_view, name='criar_fornecedor'),
+    path('fornecedores/<int:id>/editar/', views.fornecedor_editar_view, name='fornecedor_editar'),
+    path('fornecedores/<int:id>/excluir/', views.fornecedor_excluir_view, name='fornecedor_excluir'),
+    path('fornecedores/', views.fornecedores_view, name='fornecedores'),
+
     # organizacoes
     # path('organizacoes/', views.organizacoes_view, name='organizacoes'),
 ]

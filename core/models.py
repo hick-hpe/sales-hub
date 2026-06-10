@@ -8,18 +8,28 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nome
-
+    
 
 class Fornecedor(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    nome = models.CharField(max_length=100)
-    telefone = models.CharField(max_length=20, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
-    endereco = models.TextField(blank=True, null=True)
+    distribuidora = models.CharField(max_length=100)
+    nome = models.CharField(max_length=100, blank=True)
+
+    telefone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+
+    rua = models.CharField(max_length=100, null=True, blank=True)
+    numero = models.CharField(max_length=20, null=True, blank=True)
+    bairro = models.CharField(max_length=100, null=True, blank=True)
+    cidade = models.CharField(max_length=100, null=True, blank=True)
+    estado = models.CharField(max_length=2, null=True, blank=True)
+    cep = models.CharField(max_length=9, null=True, blank=True)
+
+    site = models.URLField(null=True, blank=True)
 
     def __str__(self):
-        return self.nome
+        return self.distribuidora
     
 
 class Produto(models.Model):
@@ -28,11 +38,12 @@ class Produto(models.Model):
     descricao = models.TextField(max_length=500, blank=True, null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True)
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True)
-    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    preco_venda = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    preco_custo = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     estoque_minimo = models.PositiveIntegerField(default=5)
 
     def __str__(self):
-        return f'{self.nome} - R$ {self.preco}'
+        return f'{self.nome} - R$ {self.preco_venda}'
 
 
 class Estoque(models.Model):

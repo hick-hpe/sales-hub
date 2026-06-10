@@ -2,8 +2,8 @@ from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CategoriaForm, OrganizacaoForm, ProdutoForm
-from .models import Categoria, Estoque, Organizacao, Produto, Venda, ItemVenda, VendaFiada
+from .forms import CategoriaForm, FornecedorForm, ProdutoForm # OrganizacaoForm
+from .models import Categoria, Estoque, Fornecedor, Produto, Venda, ItemVenda, VendaFiada # Organizacao
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -12,12 +12,13 @@ import json
 from django.http import JsonResponse
 from django.db.models import F, Q, Sum
 from datetime import datetime, time, timedelta, timedelta
-from reportlab.pdfgen import canvas
+# from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+from django.views.decorators.http import require_http_methods
 
 # #######################################################################
 #                            PAGINAS DE ERROS
@@ -309,7 +310,7 @@ def produtos_view(request):
         # extrair nome, categoria, preco, estoque
         print('Nome:', request.POST.get('nome'))
         print('Categoria:', request.POST.get('categoria'))
-        print('Preço:', request.POST.get('preco'))
+        print('Preço:', request.POST.get('preco_venda'))
         print('Estoque:', request.POST.get('estoque'))
 
         if form.is_valid():
@@ -754,6 +755,80 @@ def gerar_relatorio_view(request):
         print(f"Gerando relatório para este mês: {primeiro_dia} a {ultimo_dia}. Vendas encontradas: {vendas.count()}")
 
     return gerar_pdf(request, vendas)
+
+
+@login_required(login_url='/')
+def fornecedores_view(request):
+    
+    fornecedores = Fornecedor.objects.filter(user=request.user)
+    print(fornecedores)
+    
+    context = {
+        'fornecedores': fornecedores
+    }
+    return render(request, 'fornecedores/fornecedores.html', context)
+
+
+@login_required(login_url='/')
+def criar_fornecedor_view(request):
+    if request.method == 'POST':
+        form = FornecedorForm(request.POST)
+
+        if form.is_valid():
+            fornecedor = form.save(commit=False)
+            fornecedor.user = request.user
+            fornecedor.save()
+
+            messages.success(
+                request,
+                'Fornecedor cadastrado com sucesso!'
+            )
+            
+            return redirect('fornecedores')
+
+        messages.error(
+            request,
+            'Corrija os erros do formulário.'
+        )
+
+    form = FornecedorForm()
+    
+    context = {
+        'form': form
+    }
+
+    return render(request, 'fornecedores/criar_fornecedor.html', context)
+
+
+@login_required(login_url='/')
+def fornecedor_editar_view(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id, user=request.user)
+
+    if request.method == 'POST':
+        form = FornecedorForm(request.POST, instance=fornecedor, user=request.user)
+        if form.is_valid():
+            fornecedor = form.save(commit=False)
+            fornecedor.user = request.user
+            fornecedor.save()
+            
+            return redirect('fornecedores')
+    
+    else:
+        form = FornecedorForm(instance=fornecedor, user=request.user)
+
+    context = {
+        'form': form,
+        'fornecedor': fornecedor
+    }
+    return render(request, "fornecedores/fornecedor_editar.html", context)
+
+
+@login_required(login_url='/')
+@require_http_methods(['POST'])
+def fornecedor_excluir_view(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id, user=request.user)
+    fornecedor.delete()
+    return redirect('fornecedores')
 
 
 # ================= PDF =================
