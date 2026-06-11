@@ -44,6 +44,11 @@ urlpatterns = [
     path('fornecedores/<int:id>/excluir/', views.fornecedor_excluir_view, name='fornecedor_excluir'),
     path('fornecedores/', views.fornecedores_view, name='fornecedores'),
 
+    # compras
+    path('compras/', views.compras_view, name='compras'),
+    path('compras/criar/', views.realizar_compra_view, name='realizar_compra'),
+    
+
     # organizacoes
     # path('organizacoes/', views.organizacoes_view, name='organizacoes'),
 ]

@@ -22,11 +22,7 @@ Produtos
                 <!-- Busca -->
                 <div class="col-md-5">
                     <label class="form-label">Buscar</label>
-                    <input 
-                        name="buscar"
-                        type="text"
-                        class="form-control"
-                        placeholder="Buscar produto..."
+                    <input name="buscar" type="text" class="form-control" placeholder="Buscar produto..."
                         value="{{ request.GET.buscar }}">
                 </div>
 
@@ -36,14 +32,9 @@ Produtos
                     <select name="categoria" class="form-select">
                         <option value="">Todas</option>
                         {% for categoria in categorias %}
-                            <option 
-                                value="{{ categoria.id }}"
-                                {% if request.GET.categoria == categoria.id|stringformat:"s" %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ categoria.nome }}
-                            </option>
+                        <option value="{{ categoria.id }}">
+                            {{ categoria.nome }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -74,45 +65,42 @@ Produtos
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Produto</th>
                     <th>Categoria</th>
-                    <th>Preço</th>
-                    <th>Estoque</th>
-                    <th>Estoque Mínimo</th>
-                    <th>Status</th>
+                    <th>Custo</th>
+                    <th>Venda</th>
+                    <th>Lucro</th>
                     <th class="text-end">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for produto in produtos %}
                 <tr>
-                    <td>{{ produto.id }}</td>
                     <td class="nome-produto">{{ produto.nome }}</td>
                     <td>{{ produto.categoria.nome }}</td>
-                    <td>R$ {{ produto.preco }}</td>
-                    <td>{{ produto.estoque.quantidade }}</td>
-                    <td>{{ produto.estoque_minimo }}</td>
-                    {% if produto.estoque.quantidade > produto.estoque_minimo %}
-                    <td><span class="badge bg-success">{{ produto.estoque.status }}</span></td>
-                    {% else %}
-                    <td><span class="badge bg-danger">{{ produto.estoque.status }}</span></td>
-                    {% endif %}
+
+                    <td>R$ {{ produto.preco_custo }}</td>
+                    <td>R$ {{ produto.preco_venda }}</td>
+
+                    <td>
+                        R$ {{ produto.lucro }}
+                    </td>
+
                     <td class="text-end d-flex justify-content-end gap-1">
+
                         <a href="{% url 'produtos_editar' produto.id %}" class="btn btn-sm btn-warning">
                             <i class="bi bi-pencil"></i>
                             Editar
                         </a>
-                        <a href="#excluirProduto" class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#excluirProduto" data-id="{{ produto.id }}" data-nome="{{ produto.nome }}">
+
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#excluirProduto"
+                            data-id="{{ produto.id }}" data-nome="{{ produto.nome }}">
+
                             <i class="bi bi-trash"></i>
                             Excluir
-                        </a>
+                        </button>
+
                     </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center text-muted">Nenhum produto cadastrado.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -133,10 +121,10 @@ Produtos
                 <div class="modal-body">
 
                     {% for field in form %}
-                        <div class="mb-3">
-                            {{ field.label_tag }}
-                            {{ field }}
-                        </div>
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
                     {% endfor %}
 
                 </div>

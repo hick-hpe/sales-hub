@@ -53,11 +53,14 @@ class ProdutoForm(forms.ModelForm):
 
     class Meta:
         model = Produto
-        fields = ['nome', 'descricao', 'categoria', 'preco_venda', 'preco_custo', 'estoque_minimo']
+        fields = ['nome', 'descricao', 'categoria', 'fornecedor', 'preco_venda', 'preco_custo', 'estoque_minimo']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do produto'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição do produto (opcional)', 'rows': 3}),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'fornecedor': forms.Select(attrs={
+                'class': 'form-select',
+            }),
             'estoque_minimo': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Estoque mínimo', 'min': '0'})
         }
 
@@ -65,6 +68,10 @@ class ProdutoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['categoria'].queryset = Categoria.objects.filter(user=user)
         self.fields['categoria'].empty_label = "Escolha uma categoria"
+        self.fields['categoria'].required = False
+
+        if user:
+            self.fields['fornecedor'].queryset = Fornecedor.objects.filter(user=user)
 
 class FornecedorForm(forms.ModelForm):
 

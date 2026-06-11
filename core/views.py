@@ -831,6 +831,26 @@ def fornecedor_excluir_view(request, id):
     return redirect('fornecedores')
 
 
+# #######################################################################
+#                              COMPRAS
+# #######################################################################
+def compras_view(request):
+    return render(request, 'compras/compras.html')
+
+def realizar_compra_view(request):
+    
+    fornecedores = Fornecedor.objects.filter(
+        produtos__user=request.user
+    )
+
+    print(fornecedores)
+    
+    context = {
+        'fornecedores': fornecedores
+    }
+    
+    return render(request, 'compras/realizar_compra.html', context)
+
 # ================= PDF =================
 def gerar_pdf(request, vendas):
     response = HttpResponse(content_type='application/pdf')
@@ -976,29 +996,4 @@ def gerar_pdf(request, vendas):
     doc.build(elementos)
 
     return response
-
-# futuramente...
-# def organizacoes_view(request):
-#     organizacao = get_object_or_404(Organizacao, dono=request.user)
-
-#     if request.method == 'POST':
-#         form = OrganizacaoForm(request.POST, instance=organizacao)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, "Organização atualizada com sucesso.")
-#             return redirect('organizacoes')
-
-#         else:
-#             print("Erro ao atualizar organização:", form.errors)
-#             messages.error(request, "Erro ao atualizar organização. Verifique os dados e tente novamente.")
-
-
-#     form = OrganizacaoForm(instance=organizacao)
-
-#     context = {
-#         "form": form,
-#         "organizacao": organizacao
-#     }
-
-#     return render(request, "organizacoes/organizacoes.html", context)
 

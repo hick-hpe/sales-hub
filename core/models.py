@@ -29,7 +29,7 @@ class Fornecedor(models.Model):
     site = models.URLField(null=True, blank=True)
 
     def __str__(self):
-        return self.distribuidora
+        return self.nome
     
 
 class Produto(models.Model):
@@ -37,13 +37,69 @@ class Produto(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField(max_length=500, blank=True, null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True)
-    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.SET_NULL, null=True)
+    fornecedor = models.ForeignKey(
+        Fornecedor,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='produtos'
+    )
     preco_venda = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     preco_custo = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     estoque_minimo = models.PositiveIntegerField(default=5)
 
+    @property
+    def lucro(self):
+        if self.preco_venda and self.preco_custo:
+            return self.preco_venda - self.preco_custo
+        return 0
+    
+    @property
+    def margem_lucro(self):
+        if self.preco_custo and self.preco_custo > 0:
+            return ((self.preco_venda - self.preco_custo) / self.preco_custo) * 100
+        return 0
+
     def __str__(self):
         return f'{self.nome} - R$ {self.preco_venda}'
+
+
+class Compra(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    fornecedor = models.ForeignKey(
+        Fornecedor,
+        on_delete=models.PROTECT
+    )
+
+    data = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Compra #{self.id}'
+
+
+class ItemCompra(models.Model):
+    compra = models.ForeignKey(
+        Compra,
+        on_delete=models.CASCADE,
+        related_name='itens'
+    )
+
+    produto = models.ForeignKey(
+        Produto,
+        on_delete=models.PROTECT
+    )
+
+    quantidade = models.PositiveIntegerField()
+
+    preco_custo = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    @property
+    def subtotal(self):
+        return self.quantidade * self.preco_custo
 
 
 class Estoque(models.Model):
@@ -107,16 +163,4 @@ class VendaFiada(models.Model):
 
     def __str__(self):
         return f'Venda Fiada #{self.venda.id} - Status: {self.status}'
-    
-
-
-# futuramente...
-# class Organizacao(models.Model):
-#     dono = models.ForeignKey(User, on_delete=models.CASCADE)
-#     nome = models.CharField(max_length=100)
-#     descricao = models.TextField(max_length=500, blank=True, null=True)
-#     membros = models.ManyToManyField(User, related_name='organizacoes', null=True, blank=True)
-
-#     def __str__(self):
-#         return f'Organização: {self.nome} - Dono: {self.dono.username}'
     

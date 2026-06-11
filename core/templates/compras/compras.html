@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Compras
+{% endblock title %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Compras</h2>
+
+    <a href="{% url 'realizar_compra' %}" class="btn btn-dark">
+        <i class="bi bi-cart-plus"></i>
+        Nova Compra
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <form method="GET">
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <input
+                        type="text"
+                        name="buscar"
+                        value="{{ request.GET.buscar }}"
+                        class="form-control"
+                        placeholder="Buscar fornecedor ou ID...">
+                </div>
+
+                <div class="col-md-3">
+                    <input
+                        type="date"
+                        name="data"
+                        value="{{ request.GET.data }}"
+                        class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="bi bi-funnel"></i>
+                        Filtrar
+                    </button>
+                </div>
+
+                <div class="col-md-2">
+                    <a href="{% url 'compras' %}" class="btn btn-outline-dark w-100">
+                        <i class="bi bi-x-circle"></i>
+                        Limpar
+                    </a>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="card shadow-sm">
+    <div class="card-body table-responsive">
+
+        <table class="table table-hover align-middle">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fornecedor</th>
+                    <th>Data</th>
+                    <th>Itens</th>
+                    <th>Total</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for compra in compras %}
+                <tr>
+
+                    <td>#{{ compra.id }}</td>
+
+                    <td>
+                        {{ compra.fornecedor.distribuidora }}
+                    </td>
+
+                    <td>
+                        {{ compra.data|date:"d/m/Y" }}
+                    </td>
+
+                    <td>
+                        {{ compra.itens.count }}
+                    </td>
+
+                    <td>
+                        R$ {{ compra.total }}
+                    </td>
+
+                    <td class="text-end d-flex justify-content-end gap-1">
+
+                        <button
+                            class="btn btn-sm btn-info"
+                            data-bs-toggle="modal"
+                            data-bs-target="#detalhesCompra">
+                            <i class="bi bi-eye"></i>
+                            Visualizar
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#excluirCompra">
+                            <i class="bi bi-trash"></i>
+                            Excluir
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        Nenhuma compra encontrada.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+{% endblock content %}

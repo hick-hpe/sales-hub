@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Nova Compra
+{% endblock title %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Nova Compra</h2>
+
+    <a href="{% url 'compras' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Voltar
+    </a>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="row">
+
+        <!-- Dados da Compra -->
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <strong>
+                        <i class="bi bi-truck"></i>
+                        Fornecedor
+                    </strong>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Fornecedor</label>
+
+                        <select class="form-select" name="fornecedor" required>
+                            <option value="">Selecione...</option>
+
+                            {% for fornecedor in fornecedores %}
+                            <option value="{{ fornecedor.id }}">
+                                {{ fornecedor.distribuidora }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observações</label>
+
+                        <textarea
+                            class="form-control"
+                            name="observacao"
+                            rows="4"
+                            placeholder="Observações da compra"></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Produtos -->
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>
+                        <i class="bi bi-box-seam"></i>
+                        Produtos
+                    </strong>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-success"
+                        id="btnAdicionarProduto">
+                        <i class="bi bi-plus-lg"></i>
+                        Adicionar Produto
+                    </button>
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table align-middle" id="tabelaProdutos">
+
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th width="120">Quantidade</th>
+                                <th width="150">Custo Unitário</th>
+                                <th width="150">Subtotal</th>
+                                <th width="60"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+
+                                <td>
+                                    <select
+                                        class="form-select"
+                                        name="produto[]"
+                                        required>
+
+                                        <option value="">Selecione...</option>
+
+                                        {% for produto in produtos %}
+                                        <option value="{{ produto.id }}">
+                                            {{ produto.nome }}
+                                        </option>
+                                        {% endfor %}
+
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value="1"
+                                        name="quantidade[]"
+                                        class="form-control">
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        name="preco[]"
+                                        class="form-control">
+                                </td>
+
+                                <td>
+                                    <span class="subtotal">
+                                        R$ 0,00
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm removerProduto">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="card-footer text-end">
+
+                    <h4>
+                        Total:
+                        <span id="valorTotal">
+                            R$ 0,00
+                        </span>
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="text-end mt-4">
+
+        <button type="submit" class="btn btn-dark">
+            <i class="bi bi-cart-check"></i>
+            Registrar Compra
+        </button>
+
+    </div>
+
+</form>
+
+{% endblock content %}
