@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
 Nova Compra
@@ -36,7 +37,7 @@ Nova Compra
                     <div class="mb-3">
                         <label class="form-label">Fornecedor</label>
 
-                        <select class="form-select" name="fornecedor" required>
+                        <select class="form-select" id="selectFornecedor" name="fornecedor" required>
                             <option value="">Selecione...</option>
 
                             {% for fornecedor in fornecedores %}
@@ -102,17 +103,11 @@ Nova Compra
 
                                 <td>
                                     <select
-                                        class="form-select"
+                                        class="form-select selectProdutos"
                                         name="produto[]"
                                         required>
 
                                         <option value="">Selecione...</option>
-
-                                        {% for produto in produtos %}
-                                        <option value="{{ produto.id }}">
-                                            {{ produto.nome }}
-                                        </option>
-                                        {% endfor %}
 
                                     </select>
                                 </td>
@@ -186,3 +181,7 @@ Nova Compra
 </form>
 
 {% endblock content %}
+
+{% block scripts %}
+<script src="{% static 'js/realizar_compra.js' %}"></script>
+{% endblock scripts %}

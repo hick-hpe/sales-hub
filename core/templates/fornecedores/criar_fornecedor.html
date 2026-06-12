@@ -13,7 +13,7 @@ Fornecedores
     <!-- Mensagens de sucesso ou erro -->
     {% if messages %}
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -58,4 +58,7 @@ Fornecedores
         </button>
     </div>
 </div>
+
+<script src="{% static 'js/criar-fornecedor.js' %}"></script>
+
 {% endblock content %}

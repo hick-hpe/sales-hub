@@ -72,7 +72,25 @@ class Compra(models.Model):
         on_delete=models.PROTECT
     )
 
+    STATUS_CHOICES = [
+        ('A', 'Ativa'),
+        ('C', 'Cancelada'),
+    ]
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUS_CHOICES,
+        default='A'
+    )
+
     data = models.DateField(auto_now_add=True)
+
+    @property
+    def valor_total(self):
+        return sum(
+            item.subtotal
+            for item in self.itens.all()
+        )
 
     def __str__(self):
         return f'Compra #{self.id}'
@@ -87,7 +105,8 @@ class ItemCompra(models.Model):
 
     produto = models.ForeignKey(
         Produto,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='itens_compra'
     )
 
     quantidade = models.PositiveIntegerField()

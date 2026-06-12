@@ -3,16 +3,15 @@ from django.utils import timezone
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import CategoriaForm, FornecedorForm, ProdutoForm # OrganizacaoForm
-from .models import Categoria, Estoque, Fornecedor, Produto, Venda, ItemVenda, VendaFiada # Organizacao
+from .models import Categoria, Compra, Estoque, Fornecedor, ItemCompra, Produto, Venda, ItemVenda, VendaFiada # Organizacao
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import json
-from django.http import JsonResponse
+from django.http import HttpResponseNotAllowed, JsonResponse
 from django.db.models import F, Q, Sum
 from datetime import datetime, time, timedelta, timedelta
-# from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -761,10 +760,9 @@ def gerar_relatorio_view(request):
 def fornecedores_view(request):
     
     fornecedores = Fornecedor.objects.filter(user=request.user)
-    print(fornecedores)
     
     context = {
-        'fornecedores': fornecedores
+        'fornecedores': fornecedores,
     }
     return render(request, 'fornecedores/fornecedores.html', context)
 
@@ -786,6 +784,7 @@ def criar_fornecedor_view(request):
             
             return redirect('fornecedores')
 
+        print(form.errors)
         messages.error(
             request,
             'Corrija os erros do formulário.'
@@ -831,27 +830,160 @@ def fornecedor_excluir_view(request, id):
     return redirect('fornecedores')
 
 
+@login_required(login_url='/')
+def get_produtos_fornecedor_view(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id, user=request.user)
+    data = list(fornecedor.produtos.all().values('id', 'nome'))
+    return JsonResponse(data, safe=False)
+
+
 # #######################################################################
 #                              COMPRAS
 # #######################################################################
+@login_required(login_url='/')
 def compras_view(request):
-    return render(request, 'compras/compras.html')
+    compras = Compra.objects.filter(user=request.user)
 
+    context = {
+        'compras': compras.order_by('-id')
+    }
+
+    return render(request, 'compras/compras.html', context)
+
+
+@login_required(login_url='/')
 def realizar_compra_view(request):
-    
+
+    if request.method == 'POST':
+
+        produtos = request.POST.getlist('produto[]')
+        quantidades = request.POST.getlist('quantidade[]')
+        precos = request.POST.getlist('preco[]')
+
+        if not (
+            len(produtos) ==
+            len(quantidades) ==
+            len(precos)
+        ):
+            messages.error(request, 'Dados inválidos.')
+            return redirect('realizar_compra')
+
+        with transaction.atomic():
+
+            compra = Compra.objects.create(
+                user=request.user,
+                fornecedor_id=request.POST.get('fornecedor')
+            )
+
+            for prod, qtd, preco in zip(
+                produtos,
+                quantidades,
+                precos
+            ):
+
+                ItemCompra.objects.create(
+                    compra=compra,
+                    produto_id=prod,
+                    quantidade=qtd,
+                    preco_custo=preco
+                )
+            
+                # atualizar estoque
+                produto = get_object_or_404(Produto, id=prod, user=request.user)
+                produto.estoque.quantidade += int(qtd)
+                produto.estoque.save()
+
+
+        messages.success(
+            request,
+            'Compra registrada com sucesso!'
+        )
+
+        return redirect('compras')
+
     fornecedores = Fornecedor.objects.filter(
         produtos__user=request.user
+    ).distinct()
+
+    context = {
+        'fornecedores': fornecedores,
+    }
+
+    return render(
+        request,
+        'compras/realizar_compra.html',
+        context
     )
 
-    print(fornecedores)
-    
-    context = {
-        'fornecedores': fornecedores
-    }
-    
-    return render(request, 'compras/realizar_compra.html', context)
 
-# ================= PDF =================
+@login_required(login_url='/')
+@require_http_methods(['POST'])
+def cancelar_compra_view(request, id):
+
+    with transaction.atomic():
+        compra = get_object_or_404(
+            Compra,
+            id=id,
+            user=request.user
+        )
+
+        compra.status = 'C'
+        compra.save(update_fields=['status'])
+        
+        # atualizar estoque
+        for item in compra.itens.select_related('produto__estoque'):
+            estoque = item.produto.estoque
+
+            estoque.quantidade -= item.quantidade
+
+            estoque.save(update_fields=['quantidade'])
+
+    messages.success(
+        request,
+        'Compra cancelada com sucesso!'
+    )
+
+    print(f'compra #{id} cancelada')
+
+    return redirect('compras')
+
+
+
+@login_required(login_url='/')
+def detalhes_compra_view(request, id):
+
+    compra = get_object_or_404(
+        Compra,
+        id=id,
+        user=request.user
+    )
+
+    itens = []
+
+    for item in compra.itens.all():
+
+        itens.append({
+            'produto': item.produto.nome,
+            'quantidade': item.quantidade,
+            'preco': float(item.preco_custo),
+            'subtotal': float(item.subtotal),
+        })
+
+    return JsonResponse({
+        'id': compra.id,
+        'fornecedor': compra.fornecedor.distribuidora,
+        'data': compra.data.strftime('%d/%m/%Y'),
+        'status': compra.get_status_display(),
+        'status_codigo': compra.status,
+        'total': float(compra.valor_total),
+        'itens': itens,
+    })
+
+
+
+# #######################################################################
+#                              GERAR PDF
+# #######################################################################
 def gerar_pdf(request, vendas):
     response = HttpResponse(content_type='application/pdf')
     nome = f"relatorio_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"

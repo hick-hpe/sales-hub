@@ -23,8 +23,8 @@ Realizar Venda
                         <option value="">Selecione um produto</option>
                         {% for produto in produtos %}
                         <option value="{{ produto.id }}" data-nome="{{ produto.nome }}"
-                            data-preco="{{ produto.preco }}">
-                            {{ produto.nome }} - R$ {{ produto.preco }} - Estoque: {{ produto.estoque.quantidade }}
+                            data-preco="{{ produto.preco_venda }}">
+                            {{ produto.nome }} - R$ {{ produto.preco_venda }} - Estoque: {{ produto.estoque.quantidade }}
                         </option>
                         {% endfor %}
                     </select>

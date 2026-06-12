@@ -1,6 +1,6 @@
 const pagarModal = document.getElementById('pagarVendaFiado');
 
-pagarModal.addEventListener('show.bs.modal', function (event) {
+pagarModal.addEventListener('show.bs.modal', (event) => {
 
     const button = event.relatedTarget;
     const vendaFiadoId = button.getAttribute('data-id');

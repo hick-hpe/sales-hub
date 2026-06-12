@@ -24,20 +24,12 @@ Compras
             <div class="row g-3">
 
                 <div class="col-md-4">
-                    <input
-                        type="text"
-                        name="buscar"
-                        value="{{ request.GET.buscar }}"
-                        class="form-control"
+                    <input type="text" name="buscar" value="{{ request.GET.buscar }}" class="form-control"
                         placeholder="Buscar fornecedor ou ID...">
                 </div>
 
                 <div class="col-md-3">
-                    <input
-                        type="date"
-                        name="data"
-                        value="{{ request.GET.data }}"
-                        class="form-control">
+                    <input type="date" name="data" value="{{ request.GET.data }}" class="form-control">
                 </div>
 
                 <div class="col-md-2">
@@ -73,6 +65,7 @@ Compras
                     <th>Data</th>
                     <th>Itens</th>
                     <th>Total</th>
+                    <th>Status</th>
                     <th class="text-end">Ações</th>
                 </tr>
             </thead>
@@ -97,25 +90,29 @@ Compras
                     </td>
 
                     <td>
-                        R$ {{ compra.total }}
+                        R$ {{ compra.valor_total|floatformat:2 }}
+                    </td>
+
+                    <td>
+                        <span
+                            class="badge {% if compra.status == 'A' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                            {{ compra.get_status_display }}
+                        </span>
                     </td>
 
                     <td class="text-end d-flex justify-content-end gap-1">
 
-                        <button
-                            class="btn btn-sm btn-info"
-                            data-bs-toggle="modal"
-                            data-bs-target="#detalhesCompra">
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalDetalhesCompra"
+                            data-compra-id="{{ compra.id }}">
                             <i class="bi bi-eye"></i>
                             Visualizar
                         </button>
 
-                        <button
-                            class="btn btn-sm btn-danger"
-                            data-bs-toggle="modal"
-                            data-bs-target="#excluirCompra">
-                            <i class="bi bi-trash"></i>
-                            Excluir
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#modalCancelarCompra" data-compra-id="{{ compra.id }}" 
+                            {% if compra.status == 'C' %}disabled{% endif %}>
+                            <i class="bi bi-x-circle"></i>
+                            Cancelar
                         </button>
 
                     </td>
@@ -138,5 +135,137 @@ Compras
 
     </div>
 </div>
+
+<div
+    class="modal fade"
+    id="modalDetalhesCompra"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Detalhes da Compra
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row mb-4">
+
+                    <div class="col-md-4">
+                        <strong>Compra:</strong><br>
+                        <span id="compraId"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Fornecedor:</strong><br>
+                        <span id="compraFornecedor"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Data:</strong><br>
+                        <span id="compraData"></span>
+                    </div>
+
+                </div>
+
+                <div class="mb-4">
+                    <strong>Status:</strong><br>
+
+                    <span
+                        id="compraStatus"
+                        class="badge">
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered">
+
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Quantidade</th>
+                                <th>Preço</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tbodyItensCompra">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="text-end mt-3">
+                    <h5>
+                        Total:
+                        <span id="compraTotal"></span>
+                    </h5>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="modalCancelarCompra" tabindex="-1" aria-hidden="true">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Cancelar Compra
+                </h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                Deseja realmente cancelar esta compra?
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Fechar
+                </button>
+
+                <form method="POST" id="formCancelarCompra">
+
+                    {% csrf_token %}
+
+                    <button type="submit" class="btn btn-danger">
+                        Confirmar Cancelamento
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="{% static 'js/compras.js' %}"></script>
 
 {% endblock content %}

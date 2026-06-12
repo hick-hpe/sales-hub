@@ -42,12 +42,14 @@ urlpatterns = [
     path('fornecedores/criar/', views.criar_fornecedor_view, name='criar_fornecedor'),
     path('fornecedores/<int:id>/editar/', views.fornecedor_editar_view, name='fornecedor_editar'),
     path('fornecedores/<int:id>/excluir/', views.fornecedor_excluir_view, name='fornecedor_excluir'),
+    path('fornecedores/<int:id>/produtos/', views.get_produtos_fornecedor_view, name='get_produtos_fornecedor'),
     path('fornecedores/', views.fornecedores_view, name='fornecedores'),
 
     # compras
-    path('compras/', views.compras_view, name='compras'),
+    path('compras/<int:id>/cancelar/', views.cancelar_compra_view, name='cancelar_compra'),
+    path('compras/<int:id>/detalhes/', views.detalhes_compra_view, name='detalhes_compra'),
     path('compras/criar/', views.realizar_compra_view, name='realizar_compra'),
-    
+    path('compras/', views.compras_view, name='compras'),
 
     # organizacoes
     # path('organizacoes/', views.organizacoes_view, name='organizacoes'),
