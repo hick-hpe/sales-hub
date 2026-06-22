@@ -10,8 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import json
 from django.http import JsonResponse
-from django.db.models import F, Q, Sum, Count
+from django.db.models import F, Q, Sum
 from datetime import datetime, time, timedelta, timedelta
+from django.utils.dateparse import parse_date
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -149,7 +150,7 @@ def dashboard_view(request):
 
     num_total_vendas = vendas.count()
 
-    now = timezone.now()
+    now = timezone.localtime()
 
     # vendas do mês
     inicio_mes = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -167,6 +168,8 @@ def dashboard_view(request):
     # vendas hoje
     inicio_hoje = now.replace(hour=0, minute=0, second=0, microsecond=0)
     fim_hoje = inicio_hoje + timedelta(days=1)
+
+    print(f'HOJE: {inicio_hoje.strftime('%d/%m/%Y')} - {fim_hoje.strftime('%d/%m/%Y')}')
 
     valor_vendas_hoje = vendas.filter(
         data_venda__gte=inicio_hoje,
@@ -212,9 +215,6 @@ def dashboard_view(request):
             faturamento=Sum('total_parcial')
         )
     )
-
-    # for item in list_itens_compra:
-    #     print(f'{item['categoria']}: {item['num_produtos']} - R$ {(item['faturamento']):.2f}')
 
     categorias_vendas = list(map(lambda x: x['categoria'], list_itens_compra))
     valores_categorias = list(map(lambda x: x['num_produtos'], list_itens_compra))
@@ -445,7 +445,7 @@ def vendas_view(request):
 
     if data:
         try:
-            data_base = datetime.strptime(data, "%Y-%m-%d")
+            data_base = timezone.make_aware(datetime.strptime(data, "%Y-%m-%d"))
 
             inicio = data_base
             fim = data_base + timedelta(days=1)
@@ -651,7 +651,7 @@ def vendas_fiado_view(request):
 
     if data:
         try:
-            data_base = datetime.strptime(data, "%Y-%m-%d")
+            data_base = timezone.make_aware(datetime.strptime(data, "%Y-%m-%d"))
 
             inicio = data_base
             fim = data_base + timedelta(days=1)
@@ -732,40 +732,27 @@ def gerar_relatorio_view(request):
     data_fim = request.GET.get('data_fim')
 
     vendas = Venda.objects.filter(user=request.user)
-    hoje = timezone.now().date()
+    hoje = timezone.localdate()
 
     # ================= FILTROS =================
 
     if data_inicio and data_fim:
-        primeiro_dia = datetime.strptime(data_inicio, "%Y-%m-%d").date()
-        ultimo_dia = datetime.strptime(data_fim, "%Y-%m-%d").date()
+        primeiro_dia = parse_date(data_inicio)
+        ultimo_dia = parse_date(data_fim)
 
-        vendas = vendas.filter(
-            data_venda__range=[
-                datetime.combine(primeiro_dia, time.min),
-                datetime.combine(ultimo_dia, time.max)
-            ]
-        )
+        vendas = vendas.filter(data_venda__date__range=[primeiro_dia, ultimo_dia])
 
         print(f"Gerando relatório para o período: {data_inicio} a {data_fim}. Vendas encontradas: {vendas.count()}")
     
     elif periodo == 'hoje':
-        inicio = datetime.combine(hoje, time.min)
-        fim = datetime.combine(hoje, time.max)
-        vendas = vendas.filter(data_venda__range=[inicio, fim])
-
+        vendas = vendas.filter(data_venda__date=hoje)
         print(f"Gerando relatório para hoje: {hoje}. Vendas encontradas: {vendas.count()}")
 
     elif periodo == 'semana':
         inicio_semana = hoje - timedelta(days=hoje.weekday())
         fim_semana = inicio_semana + timedelta(days=6)
 
-        vendas = vendas.filter(
-            data_venda__range=[
-                datetime.combine(inicio_semana, time.min),
-                datetime.combine(fim_semana, time.max)
-            ]
-        )
+        vendas = vendas.filter(data_venda__date__range=[inicio_semana, fim_semana])
 
         print(f"Gerando relatório para esta semana: {inicio_semana} a {fim_semana}. Vendas encontradas: {vendas.count()}")
 
@@ -779,12 +766,7 @@ def gerar_relatorio_view(request):
 
         ultimo_dia = proximo_mes - timedelta(days=1)
 
-        vendas = vendas.filter(
-            data_venda__range=[
-                datetime.combine(primeiro_dia, time.min),
-                datetime.combine(ultimo_dia, time.max)
-            ]
-        )
+        vendas = vendas.filter(data_venda__date__range=[primeiro_dia, ultimo_dia])
 
         print(f"Gerando relatório para este mês: {primeiro_dia} a {ultimo_dia}. Vendas encontradas: {vendas.count()}")
 
