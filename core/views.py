@@ -362,7 +362,7 @@ def produtos_view(request):
         produtos = produtos.filter(categoria_id=categoria)
         
     context = {
-        'produtos': produtos.order_by('nome'),
+        'produtos': produtos,
         'categorias': Categoria.objects.filter(user=request.user),
         'form': form,
     }
@@ -399,7 +399,7 @@ def produtos_editar_view(request, id):
         )
 
     context = {
-        'produtos': Produto.objects.filter(user=request.user).order_by('nome'),
+        'produtos': Produto.objects.filter(user=request.user),
         'categorias': Categoria.objects.filter(user=request.user),
         'form': form,
         'produto': produto

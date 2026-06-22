@@ -48,6 +48,9 @@ class Produto(models.Model):
     preco_custo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estoque_minimo = models.PositiveIntegerField(default=5, blank=True)
 
+    class Meta:
+        ordering = ['nome']
+
     @property
     def lucro(self):
         if self.preco_venda and self.preco_custo:
@@ -62,7 +65,6 @@ class Produto(models.Model):
 
     def __str__(self):
         return f'{self.nome} - R$ {self.preco_venda}'
-
 
 class Compra(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
